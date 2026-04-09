@@ -34,7 +34,12 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build.sh
-    
+
+# 强制触发初始设置向导逻辑
+RUN dnf install -y gnome-initial-setup && \
+    systemctl enable gnome-initial-setup.service && \
+    rm -rf /var/lib/gnome-initial-setup/done /etc/gdm/custom.conf
+
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint
