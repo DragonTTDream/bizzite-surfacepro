@@ -5,41 +5,17 @@ COPY build_files /
 # Base Image
 FROM ghcr.io/ublue-os/bazzite-gnome:stable
 
-## Other possible base images include:
-# FROM ghcr.io/ublue-os/bazzite:latest
-# FROM ghcr.io/ublue-os/bluefin-nvidia:stable
-# 
-# ... and so on, here are more base images
-# Universal Blue Images: https://github.com/orgs/ublue-os/packages
-# Fedora base image: quay.io/fedora/fedora-bootc:41
-# CentOS base images: quay.io/centos-bootc/centos-bootc:stream10
-
-### [IM]MUTABLE /opt
-## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to
-## make it mutable/writable for users. However, some packages write files to this directory,
-## thus its contents might be wiped out when bootc deploys an image, making it troublesome for
-## some packages. Eg, google-chrome, docker-desktop.
-##
-## Uncomment the following line if one desires to make /opt immutable and be able to be used
-## by the package manager.
-
-# RUN rm /opt && mkdir /opt
-
 ### MODIFICATIONS
-## make modifications desired in your image and install packages by modifying the build.sh script
-## the following RUN directive does all the things required to run "build.sh" as recommended.
-
+# 执行 build.sh 以安装内核、iptsd 驱动和固件
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build.sh
 
-# 强制开启初始设置服务，移除完成标志，并注入自动修复标签
-RUN dnf install -y gnome-initial-setup && \
-    systemctl enable gnome-initial-setup.service && \
-    rm -f /var/lib/gnome-initial-setup/done && \
-    touch /.autorelabel
+# 注入自动修复标签（关键）
+# 这将确保新安装的 IPTS 固件和 iptsd 服务在重启后拥有正确的 SELinux 权限，使笔能正常书写
+RUN touch /.autorelabel
 
 ### LINTING
 ## Verify final image and contents are correct.
