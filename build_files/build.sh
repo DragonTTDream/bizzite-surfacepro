@@ -24,15 +24,13 @@ echo "Integrating kernel arguments into image..."
 mkdir -p /usr/lib/bootc/kargs.d
 printf 'i915.enable_psr=0\n' > /usr/lib/bootc/kargs.d/50-surface-pro-8.kargs
 
-# 4. 基于物理路径安装 (使用 GitHub 与 SourceForge 官方镜像)
+# 4. 基于物理路径安装 (使用 GitHub 官方镜像)
 GH_RELEASE="https://github.com/linux-surface/linux-surface/releases/download/fedora-43-6.18.8-1"
-# 您指定的 iptsd v3.1.0 资产地址
+# 指定的 iptsd v3.1.0 资产地址
 IPTSD_URL="https://github.com/linux-surface/iptsd/releases/download/v3.1.0/iptsd-3.1.0-1.fc43.x86_64.rpm"
 
-# 解决 pkg.surfacelinux.com 失效：使用官方 SourceForge 镜像路径
-MIRROR_BASE="https://sourceforge.net/projects/linux-surface.mirror/files/fedora-43"
-SECUREBOOT_URL="${MIRROR_BASE}/surface-secureboot-20251230-1.noarch.rpm/download"
-FIRMWARE_URL="${MIRROR_BASE}/surface-firmware-20250814-1.noarch.rpm/download"
+# 解决 pkg.surfacelinux.com 失效：使用官方 GitHub 镜像路径获取 SecureBoot 包
+SECUREBOOT_URL="https://github.com/linux-surface/secureboot-mok/releases/download/20251230-1/surface-secureboot-20251230-1.fc43.noarch.rpm"
 
 dnf install -y --refresh --allowerasing \
     $GH_RELEASE/kernel-surface-6.18.8-1.surface.fc43.x86_64.rpm \
@@ -46,7 +44,6 @@ dnf install -y --refresh --allowerasing \
     $GH_RELEASE/kernel-surface-modules-extra-matched-6.18.8-1.surface.fc43.x86_64.rpm \
     $GH_RELEASE/kernel-surface-modules-internal-6.18.8-1.surface.fc43.x86_64.rpm \
     $SECUREBOOT_URL \
-    $FIRMWARE_URL \
     $IPTSD_URL \
     code
 
