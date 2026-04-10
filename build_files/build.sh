@@ -76,7 +76,17 @@ dnf install -y --refresh --allowerasing \
     code
 
 # ==============================================================================
-# 6. 镜像构建后期清理与优化
+# 6. 修复 udev 硬件触发规则
+# ==============================================================================
+# 强制为 ITHC 触控控制器注入 systemd 标签，确保 iptsd 模板服务被正确拉起且不被结束
+echo "Creating custom udev rules for iptsd..."
+mkdir -p /etc/udev/rules.d
+cat <<'EOF' > /etc/udev/rules.d/99-iptsd-force.rules
+ACTION=="add|change", SUBSYSTEM=="hidraw", SUBSYSTEMS=="pci", DRIVERS=="ithc|intel_iths", TAG+="systemd", ENV{SYSTEMD_WANTS}+="iptsd@%k.service"
+EOF
+
+# ==============================================================================
+# 7. 镜像构建后期清理与优化
 # ==============================================================================
 # 提取当前 kernel-surface 版本号，并精准清理无用的内核模块以解决 bootc lint 验证报错
 KERNEL_VERSION=$(rpm -q kernel-surface --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' | head -n 1)
