@@ -41,7 +41,7 @@ GH_RELEASE="https://github.com/linux-surface/linux-surface/releases/download/fed
 # 触控与手写笔用户空间守护进程 (iptsd)
 IPTSD_URL="https://github.com/linux-surface/iptsd/releases/download/v3.1.0/iptsd-3.1.0-1.fc43.x86_64.rpm"
 
-# 硬件控制工具 (surface-control) - 用于电池限制和性能切换
+# 硬件控制工具 (surface-control)
 SURFACE_CONTROL_URL="https://github.com/linux-surface/surface-control/releases/download/v0.5.0-1/surface-control-0.5.0-1.fc43.x86_64.rpm"
 
 # 机器主板安全启动证书签名组件 (secureboot-mok)
@@ -76,24 +76,24 @@ dnf install -y --refresh --allowerasing \
     code
 
 # ==============================================================================
-# 6. 修复 udev 硬件触发规则
+# 6. 核心修复：强制 udev 绑定 (针对 Surface Pro 8 优化)
 # ==============================================================================
-# 强制为 ITHC 触控控制器注入 systemd 标签，确保 iptsd 模板服务被正确拉起且不被结束
-echo "Creating custom udev rules for iptsd..."
-mkdir -p /etc/udev/rules.d
-cat <<'EOF' > /etc/udev/rules.d/99-iptsd-force.rules
-ACTION=="add|change", SUBSYSTEM=="hidraw", SUBSYSTEMS=="pci", DRIVERS=="ithc|intel_iths", TAG+="systemd", ENV{SYSTEMD_WANTS}+="iptsd@%k.service"
+# 使用 /usr/lib/udev/rules.d 确保持久化，并锁定 hidraw0 以防止 iptsd 逻辑退出
+echo "Applying Surface Pro 8 specific udev rules..."
+mkdir -p /usr/lib/udev/rules.d
+cat <<EOF > /usr/lib/udev/rules.d/99-iptsd-sp8-force.rules
+# 强制标记 ITHC 核心节点为 systemd 单元，并自动触发模板服务
+KERNEL=="hidraw0", SUBSYSTEM=="hidraw", TAG+="systemd", ENV{SYSTEMD_WANTS}+="iptsd@hidraw0.service"
 EOF
 
 # ==============================================================================
 # 7. 镜像构建后期清理与优化
 # ==============================================================================
-# 提取当前 kernel-surface 版本号，并精准清理无用的内核模块以解决 bootc lint 验证报错
 KERNEL_VERSION=$(rpm -q kernel-surface --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' | head -n 1)
 if [ -n "$KERNEL_VERSION" ]; then
     find /usr/lib/modules -maxdepth 1 -mindepth 1 -not -name "$KERNEL_VERSION" -exec rm -rf {} +
     depmod -a "$KERNEL_VERSION"
 fi
 
-# 禁用构建环境中冗余的第三方软件源以防影响后续系统更新
+# 禁用构建环境中冗余的第三方软件源
 sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/terra-extras.repo /etc/yum.repos.d/terra-mesa.repo /etc/yum.repos.d/terra.repo || true
