@@ -41,6 +41,9 @@ GH_RELEASE="https://github.com/linux-surface/linux-surface/releases/download/fed
 # 触控与手写笔用户空间守护进程 (iptsd)
 IPTSD_URL="https://github.com/linux-surface/iptsd/releases/download/v3.1.0/iptsd-3.1.0-1.fc43.x86_64.rpm"
 
+# 硬件控制工具 (surface-control) - 用于电池限制和性能切换
+SURFACE_CONTROL_URL="https://github.com/linux-surface/surface-control/releases/download/v0.5.0-1/surface-control-0.5.0-1.fc43.x86_64.rpm"
+
 # 机器主板安全启动证书签名组件 (secureboot-mok)
 SECUREBOOT_URL="https://github.com/linux-surface/secureboot-mok/releases/download/20251230-1/surface-secureboot-20251230-1.fc43.noarch.rpm"
 
@@ -66,6 +69,7 @@ dnf install -y --refresh --allowerasing \
     $GH_RELEASE/kernel-surface-modules-internal-6.18.8-1.surface.fc43.x86_64.rpm \
     $SECUREBOOT_URL \
     $IPTSD_URL \
+    $SURFACE_CONTROL_URL \
     $LIBWACOM_CORE \
     $LIBWACOM_DATA \
     $LIBWACOM_UTILS \
